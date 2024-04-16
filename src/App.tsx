@@ -1,10 +1,56 @@
 import { useRef, useMemo } from "react";
-import { Workbook } from "exceljs";
+import { Workbook, Worksheet, Borders } from "exceljs";
+
+const borderStyle: Partial<Borders> = {
+    top: { style: "thin", color: { argb: "FF000000" } },
+    left: { style: "thin", color: { argb: "FF000000" } },
+    bottom: { style: "thin", color: { argb: "FF000000" } },
+    right: { style: "thin", color: { argb: "FF000000" } },
+};
+
+const columnList = [
+    "총 제출 문제 수",
+    "총 풀이 제출 수",
+    "총 사용 선생님 수(유니크)",
+    "총 사용 학생 수(유니크)",
+];
+
+function stylingAllTitle(sheet: Worksheet, startDate: string, endDate: string) {
+    sheet.getColumn("A").width = 22;
+
+    const allTitleCell = sheet.getCell("A1");
+
+    allTitleCell.value = "전체";
+    allTitleCell.font = {
+        bold: true,
+        size: 16,
+    };
+
+    sheet.mergeCells("A2:B2");
+    const allDateCell = sheet.getCell("A2");
+    allDateCell.value = `${startDate} ~ ${endDate}`;
+    allDateCell.border = {
+        ...borderStyle,
+    };
+
+    let currentCell = null;
+    for (let i = 3; i <= 6; i++) {
+        currentCell = sheet.getCell(`A${i}`);
+        currentCell.value = columnList[i - 3];
+    }
+}
 
 // Workbook 생성 및 반환
 function createWorkbook(startDate: string, endDate: string): Workbook {
     const wb = new Workbook();
     const sheet = wb.addWorksheet(`논술평가사용통계_${startDate}_${endDate}`);
+
+    try {
+        // 전체 셀 스타일링
+        stylingAllTitle(sheet, startDate, endDate);
+    } catch (error) {
+        console.log(error);
+    }
 
     return wb;
 }
